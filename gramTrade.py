@@ -23,10 +23,7 @@ def clean_values(value: str) -> str:
            str: the value without whitespaces and a dot
        """
 
-    value = value.replace(" ", "")
-    if re.match(r"\s+,\d+", value):
-        value = value.replace(",", ".")
-    return value
+    return value.replace(" ", "").replace(",", ".")
 
 
 def find_pair(message: str) -> Optional[str]:
@@ -46,7 +43,7 @@ def find_pair(message: str) -> Optional[str]:
     return None
 
 
-async def retrieve_position(sl: str, tps: list[str]) -> str:
+def retrieve_position(sl: str, tps: list[str]) -> str:
     """Check with tp and sl if the position is a buy or sell
 
            Args:
@@ -56,15 +53,14 @@ async def retrieve_position(sl: str, tps: list[str]) -> str:
            Returns:
                str: position type
            """
-    order = None
     if float(sl) > float(tps[0]):
-        order = "SHORT"
+        order = "SELL"
     elif float(sl) < float(tps[0]):
         order = "BUY"
     return order
 
 
-async def find_values(line):
+def find_values(line: str) -> Optional[str]:
     """Retrieve decimal value from regex
 
                Args:
@@ -74,7 +70,10 @@ async def find_values(line):
                    str: value ready to use as float
                """
     raw_value = re.findall(regex_decimal, line)
-    return clean_values(raw_value[0])
+    if len(raw_value) >= 1:
+        return clean_values(raw_value[0])
+    else:
+        return None
 
 
 def order_type(message: str) -> Optional[str]:
@@ -87,13 +86,14 @@ def order_type(message: str) -> Optional[str]:
                str: position
            """
 
-    if re.search(buy_pattern, message, re.IGNORECASE):
-        return "BUY"
-    elif re.search(short_pattern, message, re.IGNORECASE):
-        return "SHORT"
-    elif re.search(buy_limit_pattern, message, re.IGNORECASE):
+    if re.search(buy_limit_pattern, message, re.IGNORECASE):
         return "BUY LIMIT"
     elif re.search(sell_limit_pattern, message, re.IGNORECASE):
         return "SELL LIMIT"
+    elif re.search(buy_pattern, message, re.IGNORECASE):
+        return "BUY"
+    elif re.search(short_pattern, message, re.IGNORECASE):
+        return "SELL"
     else:
         logger.debug("No order type in {}".format(message))
+        return None
