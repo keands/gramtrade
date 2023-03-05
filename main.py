@@ -46,13 +46,17 @@ async def detect_keywords(update: Update, context: CallbackContext):
 
         for line in lines[:]:
             if "SL" in line and sl is None:
-                sl = await find_values(line)
+                temp = find_values(line)
+                if temp is not None:
+                    sl = temp
 
             if "TP" in line:
-                tps.append(await find_values(line))
+                temp = find_values(line)
+                if temp is not None:
+                    tps.append(temp)
 
         if order is None:
-            order = await retrieve_position(sl, tps)
+            order = retrieve_position(sl, tps)
 
         response = None
 
